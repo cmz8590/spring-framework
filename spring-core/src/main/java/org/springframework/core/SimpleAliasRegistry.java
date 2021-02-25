@@ -207,6 +207,8 @@ public class SimpleAliasRegistry implements AliasRegistry {
 	}
 
 	/**
+	 * 一个循环获取 beanName 的过程  根据别名获取最终的beanName
+	 *
 	 * Determine the raw name, resolving aliases to canonical names.
 	 * @param name the user-specified name
 	 * @return the transformed name

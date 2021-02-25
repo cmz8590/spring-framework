@@ -514,13 +514,19 @@ public class BeanDefinitionParserDelegate {
 		try {
 			AbstractBeanDefinition bd = createBeanDefinition(className, parent);
 
+			// 对bean 标签的基本属性进行解析
 			parseBeanDefinitionAttributes(ele, beanName, containingBean, bd);
 			bd.setDescription(DomUtils.getChildElementValueByTagName(ele, DESCRIPTION_ELEMENT));
 
+			// 解析<meta>元素
 			parseMetaElements(ele, bd);
+			// 解析<lookup-method>元素
+			//Spring 动态改变 bean 里方法的实现。方法执行返回的对象，使用 Spring 内原有的这类对象替换，通过改变方法返回值来动态改变方法。内部实现为使用 cglib 方法，重新生成子类，重写配置的方法和返回对象，达到动态改变的效果。
 			parseLookupOverrideSubElements(ele, bd.getMethodOverrides());
+			// 解析<replace-method>元素
 			parseReplacedMethodSubElements(ele, bd.getMethodOverrides());
 
+			//解析 constructor-arg、property、<qualifier>
 			parseConstructorArgElements(ele, bd);
 			parsePropertyElements(ele, bd);
 			parseQualifierElements(ele, bd);
