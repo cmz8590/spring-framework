@@ -117,7 +117,7 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 								// Temporarily return non-post-processed object, not storing it yet..
 								return object;
 							}
-							// 单例 Bean 的前置处理
+							// 单例 Bean 的前置处理， 将bean标记为当前正在创建中
 							beforeSingletonCreation(beanName);
 							try {
 								// 对从 FactoryBean 获取的对象进行后处理
@@ -129,7 +129,7 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 										"Post-processing of FactoryBean's singleton object failed", ex);
 							}
 							finally {
-								// 单例 Bean 的后置处理
+								// 单例 Bean 的后置处理，将bean从正在创建中 移除
 								afterSingletonCreation(beanName);
 							}
 						}
@@ -167,9 +167,11 @@ public abstract class FactoryBeanRegistrySupport extends DefaultSingletonBeanReg
 	private Object doGetObjectFromFactoryBean(FactoryBean<?> factory, String beanName) throws BeanCreationException {
 		Object object;
 		try {
+			// 需要权限验证
 			if (System.getSecurityManager() != null) {
 				AccessControlContext acc = getAccessControlContext();
 				try {
+					// <x> 从 FactoryBean 中，获得 Bean 对象
 					object = AccessController.doPrivileged((PrivilegedExceptionAction<Object>) factory::getObject, acc);
 				}
 				catch (PrivilegedActionException pae) {
