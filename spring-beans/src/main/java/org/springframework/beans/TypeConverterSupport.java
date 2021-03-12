@@ -68,6 +68,7 @@ public abstract class TypeConverterSupport extends PropertyEditorRegistrySupport
 	public <T> T convertIfNecessary(@Nullable Object value, @Nullable Class<T> requiredType,
 			@Nullable TypeDescriptor typeDescriptor) throws TypeMismatchException {
 
+		// 委托给TypeConverterDelegate 对象处理
 		Assert.state(this.typeConverterDelegate != null, "No TypeConverterDelegate");
 		try {
 			return this.typeConverterDelegate.convertIfNecessary(null, null, value, requiredType, typeDescriptor);

@@ -126,14 +126,18 @@ public class PropertyOverrideConfigurer extends PropertyResourceConfigurer {
 	protected void processKey(ConfigurableListableBeanFactory factory, String key, String value)
 			throws BeansException {
 
+		// 判断是否存在 "."，即获取其索引位置
 		int separatorIndex = key.indexOf(this.beanNameSeparator);
 		if (separatorIndex == -1) {
 			throw new BeanInitializationException("Invalid key '" + key +
 					"': expected 'beanName" + this.beanNameSeparator + "property'");
 		}
+		// 得到 beanName
 		String beanName = key.substring(0, separatorIndex);
+		// 得到属性名称
 		String beanProperty = key.substring(separatorIndex + 1);
 		this.beanNames.add(beanName);
+		// 替换
 		applyPropertyValue(factory, beanName, beanProperty, value);
 		if (logger.isDebugEnabled()) {
 			logger.debug("Property '" + key + "' set to value [" + value + "]");
@@ -141,6 +145,7 @@ public class PropertyOverrideConfigurer extends PropertyResourceConfigurer {
 	}
 
 	/**
+	 * 将给定的属性值应用于相应的bean
 	 * Apply the given property value to the corresponding bean.
 	 */
 	protected void applyPropertyValue(
@@ -152,6 +157,7 @@ public class PropertyOverrideConfigurer extends PropertyResourceConfigurer {
 			bdToUse = bd;
 			bd = bd.getOriginatingBeanDefinition();
 		}
+		// 设置 PropertyValue 到 BeanDefinition 中
 		PropertyValue pv = new PropertyValue(property, value);
 		pv.setOptional(this.ignoreInvalidKeys);
 		bdToUse.getPropertyValues().addPropertyValue(pv);

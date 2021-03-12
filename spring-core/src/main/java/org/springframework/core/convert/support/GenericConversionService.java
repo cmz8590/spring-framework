@@ -178,19 +178,26 @@ public class GenericConversionService implements ConfigurableConversionService {
 	@Nullable
 	public Object convert(@Nullable Object source, @Nullable TypeDescriptor sourceType, TypeDescriptor targetType) {
 		Assert.notNull(targetType, "Target type to convert to cannot be null");
+		// <1> 如果 sourceType 为空，则直接处理结果
 		if (sourceType == null) {
 			Assert.isTrue(source == null, "Source must be [null] if source type == [null]");
 			return handleResult(null, targetType, convertNullSource(null, targetType));
 		}
+		// <2> 如果类型不对，抛出 IllegalArgumentException 异常
 		if (source != null && !sourceType.getObjectType().isInstance(source)) {
 			throw new IllegalArgumentException("Source to convert from must be an instance of [" +
 					sourceType + "]; instead it was a [" + source.getClass().getName() + "]");
 		}
+		// <3> 获得对应的 GenericConverter 对象
 		GenericConverter converter = getConverter(sourceType, targetType);
+		// <4> 如果 converter 非空，则进行转换，然后再处理结果
 		if (converter != null) {
+			// <4.1> 执行转换
 			Object result = ConversionUtils.invokeConverter(converter, source, sourceType, targetType);
+			// <4.2> 处理器结果（校验null的情况下，目标类型是原始类型）
 			return handleResult(sourceType, targetType, result);
 		}
+		// <5> 处理 converter 为空的情况
 		return handleConverterNotFound(source, sourceType, targetType);
 	}
 
@@ -252,11 +259,12 @@ public class GenericConversionService implements ConfigurableConversionService {
 	@Nullable
 	protected GenericConverter getConverter(TypeDescriptor sourceType, TypeDescriptor targetType) {
 		ConverterCacheKey key = new ConverterCacheKey(sourceType, targetType);
+		// 缓存中获取GenericConverter 对象
 		GenericConverter converter = this.converterCache.get(key);
 		if (converter != null) {
 			return (converter != NO_MATCH ? converter : null);
 		}
-
+		// 缓存中没有，从Converters中 查找
 		converter = this.converters.find(sourceType, targetType);
 		if (converter == null) {
 			converter = getDefaultConverter(sourceType, targetType);
@@ -309,15 +317,17 @@ public class GenericConversionService implements ConfigurableConversionService {
 	@Nullable
 	private Object handleConverterNotFound(
 			@Nullable Object source, @Nullable TypeDescriptor sourceType, TypeDescriptor targetType) {
-
+		// 情况一，如果 source 为空，则返回空
 		if (source == null) {
 			assertNotPrimitiveTargetType(sourceType, targetType);
 			return null;
 		}
+		// 情况二，如果 sourceType 为空，或者 targetType 是 sourceType 的子类，则返回 source
 		if ((sourceType == null || sourceType.isAssignableTo(targetType)) &&
 				targetType.getObjectType().isInstance(source)) {
 			return source;
 		}
+		// 抛出 ConverterNotFoundException 异常
 		throw new ConverterNotFoundException(sourceType, targetType);
 	}
 
@@ -541,6 +551,7 @@ public class GenericConversionService implements ConfigurableConversionService {
 		@Nullable
 		public GenericConverter find(TypeDescriptor sourceType, TypeDescriptor targetType) {
 			// Search the full type hierarchy
+			//搜索完整的类型层次结构
 			List<Class<?>> sourceCandidates = getClassHierarchy(sourceType.getType());
 			List<Class<?>> targetCandidates = getClassHierarchy(targetType.getType());
 			for (Class<?> sourceCandidate : sourceCandidates) {
@@ -577,6 +588,7 @@ public class GenericConversionService implements ConfigurableConversionService {
 		}
 
 		/**
+		 * 返回给定类型的有序类层次结构
 		 * Returns an ordered class hierarchy for the given type.
 		 * @param type the type
 		 * @return an ordered list of all classes that the given type extends or implements
